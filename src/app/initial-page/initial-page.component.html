@@ -1,11 +1,21 @@
-<div class="image-container"></div>
+<div class="image-container" [class.active]="isAnimationActive">
+  <ng-container *ngIf="renderedPotholePositions.length">
+    <div class="pothole" *ngFor="let pothole of renderedPotholePositions" [ngStyle]="{
+        'width':pothole.width+'px',
+        'height':pothole.height+'px',
+        'top':pothole.y- pothole.height/2 +'px',
+        'left':pothole.x - pothole.width/2 +'px'
+  }">
+    </div>
+  </ng-container>
+</div>
 
 <div class="text-container">
   <p class="text">
     Start <br> your journey <br>with us
   </p>
 
-  <button mat-flat-button class="button" color="primary" routerLink="home">
+  <button mat-flat-button class="button" color="primary" (click)="onGoEvent()">
     Let's Go
   </button>
 </div>
