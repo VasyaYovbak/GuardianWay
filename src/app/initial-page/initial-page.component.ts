@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, inject} from '@angular/core';
+import {AfterViewInit, Component, HostListener, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {MatButtonModule} from "@angular/material/button";
 import {Router, RouterLink} from "@angular/router";
@@ -22,6 +22,14 @@ export class InitialPageComponent implements AfterViewInit {
 
   private _initialPotholes = POTHOLE_POSITIONS;
 
+
+  @HostListener('window:resize')
+  onResize() {
+    requestAnimationFrame(() => {
+      this.renderedPotholePositions = this._initialPotholes
+        .map(pothole => this._initialPageService.getCurrentPotholePosition(pothole))
+    })
+  }
 
   ngAfterViewInit(): void {
     requestAnimationFrame(() => {

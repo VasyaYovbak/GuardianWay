@@ -9,5 +9,14 @@ export const routes: Routes = [
   {
     component: HomePageComponent, title: 'Home', path: 'home', data: {animation: 'HomePage'}
   },
+  {
+    title: 'Detection',
+    path: 'detection',
+    data: {animation: 'DetectionPage'},
+    loadChildren: () =>
+      import('./detection-page').then(
+        (lib) => lib.DETECTION_PAGE_ROUTES,
+      ),
+  },
   {path: '**', redirectTo: '', pathMatch: 'full'},
 ];
