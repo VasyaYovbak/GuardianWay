@@ -1,35 +1,10 @@
 @use 'variables' as vars;
 
 .top-bar-container {
-  background: vars.$gw-blue-background;
   display: flex;
-  justify-content: flex-end;
-  padding: 4px 10px;
-  box-shadow: 0 3px 10px 0 rgba(99,185,255,0.75);
-
-  .logo-container{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-
-    mat-icon{
-      width: 64px;
-      height: 64px;
-      font-size: 64px;
-    }
-  }
-
-  .top-bar-action-buttons{
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    mat-icon{
-      width: 48px;
-      height: 48px;
-      font-size: 48px;
-    }
-  }
+  justify-content: space-between;
+  padding: 20px 16px 20px 4px;
+  height: 80px;
+  align-items: center;
 }
 
