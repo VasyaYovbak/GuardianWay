@@ -1,15 +1,24 @@
 import {Component} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {RouterOutlet} from '@angular/router';
+import {ChildrenOutletContexts, RouterOutlet} from '@angular/router';
 
 import {TopBarComponent} from "./top-bar/top-bar.component";
+import {InitialPageComponent} from "./initial-page/initial-page.component";
+import {slideInAnimation} from "./animations";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, TopBarComponent],
+  imports: [CommonModule, RouterOutlet, TopBarComponent, InitialPageComponent],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  animations: [slideInAnimation]
 })
 export class AppComponent {
+
+  constructor(private contexts: ChildrenOutletContexts) {}
+
+  getRouteAnimationData() {
+    return this.contexts.getContext('primary')?.route?.snapshot?.data?.['animation'];
+  }
 }
