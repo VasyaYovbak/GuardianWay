@@ -2,6 +2,7 @@ import {Routes} from '@angular/router';
 import {HomePageComponent} from "./home-page/home-page.component";
 import {InitialPageComponent} from "./initial-page/initial-page.component";
 import {InformationPageComponent} from "./information-page";
+import {SettingsPageComponent} from "./settings-page";
 
 export const routes: Routes = [
   {
@@ -21,6 +22,9 @@ export const routes: Routes = [
   },
   {
     component: InformationPageComponent, title: 'Information', path: 'info', data: {animation: 'InformationPage'}
+  },
+  {
+    component: SettingsPageComponent, title: 'Settings', path: 'settings', data: {animation: 'SettingsPage'}
   },
   {path: '**', redirectTo: '', pathMatch: 'full'},
 ];
