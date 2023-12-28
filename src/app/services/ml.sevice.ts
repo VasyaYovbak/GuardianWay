@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
 import {getBestClassIndex, iou, transformCoordinates} from "./utils";
+import {DetectedObjectInformation} from "../models";
 
 // import '@tensorflow/tfjs-backend-webgpu'
 
@@ -9,9 +10,7 @@ import {getBestClassIndex, iou, transformCoordinates} from "./utils";
 })
 export class MLService {
   private model: tf.GraphModel | null = null;
-
-  private _probabilityThreshold = 0.3;
-
+  private _probabilityThreshold = 0.5;
   private _modelImageSize = 640;
 
   constructor() {
@@ -23,23 +22,16 @@ export class MLService {
     //   await tf.setBackend('webgl')
     // }
     this.model = await tf.loadGraphModel(modelUrl);
-    alert(this.model)
     console.log(this.model)
-    console.log(tf.findBackend('webgpu'))
   }
 
-  async predict(videoFrame: ImageBitmap): Promise<number[][] | null> {
+  async predict(videoFrame: ImageBitmap): Promise<DetectedObjectInformation[] | null> {
     if (!this.model) {
       console.error('Model not loaded');
       return null;
     }
-    const startTime = performance.now();
     const tensor = await this.convertVideoFramesToTensor(videoFrame);
-
     const prediction = this.model.predict(tensor);
-    const endTime = performance.now();
-    // console.log(endTime - startTime)
-    // alert(endTime - startTime)
 
     tf.dispose(tensor);
 
@@ -52,13 +44,8 @@ export class MLService {
 
     const framePrediction = tf.gather(prediction, 0);
     const selectedOutput = tf.transpose(framePrediction);
-    tf.dispose(framePrediction);
-
     const filteredBoxes = await this.filterBoxes(selectedOutput);
-    tf.dispose(selectedOutput);
-
     let filteredOutput = await filteredBoxes.array() as number[][];
-    tf.dispose(filteredBoxes);
 
     filteredOutput.sort((a, b) => b[4] - a[4]);
 
@@ -69,7 +56,7 @@ export class MLService {
         break;
       }
       result.push(currentBox);
-      filteredOutput = filteredOutput.filter(box => iou(box, currentBox!) < 0.5);
+      filteredOutput = filteredOutput.filter(box => iou(box, currentBox!) < 0.7);
     }
 
     const transformedBboxes = result.map(bbox => {
@@ -78,11 +65,17 @@ export class MLService {
       return [...transformedBbox, bestClassIndex];
     });
 
-    tf.dispose(prediction);
-    // console.log(transformedBboxes.length)
+    tf.dispose([prediction, framePrediction, selectedOutput, filteredBoxes]);
 
-
-    return transformedBboxes;
+    return transformedBboxes.map(detectedObject => ({
+      bbox: {
+        x: detectedObject[0],
+        y: detectedObject[1],
+        w: detectedObject[2],
+        h: detectedObject[3]
+      },
+      class: detectedObject[4]
+    }));
   }
 
   disposeModel(): void {
