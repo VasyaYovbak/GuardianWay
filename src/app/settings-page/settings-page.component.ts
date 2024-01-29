@@ -1,16 +1,19 @@
-import { Component } from '@angular/core';
-import {CommonModule, NgOptimizedImage} from '@angular/common';
-import {MatIconModule} from "@angular/material/icon";
-import {MatButtonModule} from "@angular/material/button";
-import {MatDividerModule} from "@angular/material/divider";
+import {Component} from '@angular/core';
+import {ChildrenOutletContexts} from "@angular/router";
+import {slideInAnimation} from "../animations";
+
 
 @Component({
   selector: 'app-settings-page',
-  standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule, MatDividerModule, NgOptimizedImage],
   templateUrl: './settings-page.component.html',
-  styleUrl: './settings-page.component.scss'
+  styleUrl: './settings-page.component.scss',
+  animations: [slideInAnimation]
 })
 export class SettingsPageComponent {
+  constructor(private contexts: ChildrenOutletContexts) {
+  }
 
+  getRouteAnimationData() {
+    return this.contexts.getContext('primary')?.route?.snapshot?.data?.['animation'];
+  }
 }
