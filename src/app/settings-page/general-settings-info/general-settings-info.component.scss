@@ -1,0 +1,40 @@
+:host{
+  display: flex;
+  flex-direction: column;
+
+  .settings-button {
+    ::ng-deep {
+      .mdc-button__label {
+        width: 100%;
+      }
+    }
+
+    width: 100%;
+    justify-content: flex-start;
+    padding: 6px 0;
+    height: 52px;
+
+    .settings-button-body {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      .icon-circle {
+        width: 40px;
+        height: 40px;
+        background-color: #f3f3f3;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .chevron-icon {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        justify-content: flex-end;
+      }
+    }
+  }
+}

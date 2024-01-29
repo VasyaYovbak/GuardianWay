@@ -1,0 +1,25 @@
+<div class="back-button" (click)="goBack()">
+  <button mat-icon-button>
+    <mat-icon>keyboard_arrow_left</mat-icon>
+  </button>
+  <span>
+    Back
+  </span>
+</div>
+<p class="gw-text main-text">Application sound settings</p>
+<mat-divider></mat-divider>
+<ng-container [formGroup]="form">
+  <div class="settings-element">
+    <span class="gw-text">Play notification sound on pothole detection</span>
+    <mat-slide-toggle color="primary" formControlName='playPotholesDetectionSound' (change)="updateSettingsConfig()">
+    </mat-slide-toggle>
+  </div>
+  <mat-divider></mat-divider>
+  <div class="settings-element">
+    <span class="gw-text">Play notification sound on traffic light detection</span>
+    <mat-slide-toggle color="primary" formControlName='playTrafficLightsDetectionSound'
+                      (change)="updateSettingsConfig()">
+    </mat-slide-toggle>
+  </div>
+</ng-container>
+<mat-divider></mat-divider>
