@@ -1,11 +1,13 @@
-import {AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, inject, OnDestroy, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {CameraVisualizationComponent} from "./camera-visualization/camera-visualization.component";
-import {MLService, WebcamConnectionService, GeolocationService, HandleDetectionsService} from "../services";
+import {
+  WebcamConnectionService,
+} from "../services";
 import {NotificationsListComponent} from "./notifications-list";
 import {MatIconModule} from "@angular/material/icon";
 import {MatButtonModule} from "@angular/material/button";
-import {DetectedObjectInformation} from "../models";
+import {DetectionPageService} from "./detection-page.service";
 
 @Component({
   selector: 'app-detection-page',
@@ -16,14 +18,11 @@ import {DetectedObjectInformation} from "../models";
 })
 export class DetectionPageComponent implements AfterViewInit, OnDestroy {
   @ViewChild(NotificationsListComponent) notificationList!: NotificationsListComponent;
+  @ViewChild(CameraVisualizationComponent) cameraVisualization!: CameraVisualizationComponent;
 
   private _webcamConnectionService = inject(WebcamConnectionService)
-  private _MLService = inject(MLService)
-  private _HandleDetectionsService = inject(HandleDetectionsService)
+  private _detectionPageService = inject(DetectionPageService)
 
-
-  private _canvas = document.createElement('canvas');
-  videoStream: MediaStream | null = this._canvas.captureStream();
 
   private availableCameras: MediaStreamConstraints[] = [];
 
@@ -32,21 +31,16 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
 
   async ngAfterViewInit() {
     await this.initCameraDevices();
-    this._HandleDetectionsService.createStorageForClass('pothole');
-    this._HandleDetectionsService.setFrameRateTarget('pothole', 30);
 
-    this._HandleDetectionsService.notificationsSubject
-      .subscribe(notification => this.notificationList.addNotification(notification))
-
-
-    this._MLService.loadModel('assets/models/best-pothole-640-tfjs-uint8/model.json').then(() => {
+    this._detectionPageService.initModels().then((notificationsSubject) => {
+      notificationsSubject.subscribe(notification => this.notificationList.addNotification(notification));
       this.createCameraStream();
     })
   }
 
   ngOnDestroy(): void {
     this.cameraTrack?.stop();
-    this._MLService.disposeModel();
+    this._detectionPageService.disposeModels();
   }
 
   private createCameraStream() {
@@ -62,11 +56,10 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
         const trackGenerator = new MediaStreamTrackGenerator({kind: "video"});
 
         const transformer = this._webcamConnectionService.getVideoFrameTransform(async (frame) => {
-          const franeBitmap = await createImageBitmap(frame)
-          const predictions = await this._MLService.predict(franeBitmap) ?? [];
-          this._HandleDetectionsService.addDetectionsToStorage('pothole', predictions);
+          const franeBitmap = await createImageBitmap(frame);
+          const predictions = await this._detectionPageService.predictOnImage(franeBitmap);
 
-          this.drawRectanglesOnImage(franeBitmap, predictions)
+          this.cameraVisualization.drawRectanglesOnImage(franeBitmap, predictions);
           return frame.clone();
         })
 
@@ -83,24 +76,6 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
     this.cameraTrack?.stop();
     this.availableCameras.push(this.availableCameras.shift()!);
     this.createCameraStream();
-  }
-
-  private drawRectanglesOnImage(imageBitmap: ImageBitmap, detectedObjects: DetectedObjectInformation[]) {
-    const ctx = this._canvas.getContext('2d')!;
-
-    this._canvas.width = imageBitmap.width;
-    this._canvas.height = imageBitmap.height;
-
-    ctx.drawImage(imageBitmap, 0, 0);
-
-    detectedObjects.forEach(detectedObject => {
-      const {x, y, w, h} = detectedObject.bbox;
-      ctx.beginPath();
-      ctx.strokeStyle = 'red';
-      ctx.lineWidth = 3;
-      ctx.rect(x - w / 2, y - h / 2, w, h);
-      ctx.stroke();
-    });
   }
 
 

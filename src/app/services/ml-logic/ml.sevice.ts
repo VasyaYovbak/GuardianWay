@@ -1,35 +1,27 @@
 import {Injectable} from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
-import {getBestClassIndex, iou, transformCoordinates} from "./utils";
-import {DetectedObjectInformation} from "../models";
+import {getBestClassIndex, iou, transformCoordinates} from "../utils";
+import {DetectedObjectInformation} from "../../models";
 
 // import '@tensorflow/tfjs-backend-webgpu'
 
 @Injectable({
   providedIn: 'root'
 })
-export class MLService {
-  private model: tf.GraphModel | null = null;
-  private _probabilityThreshold = 0.5;
-  private _modelImageSize = 640;
+export abstract class DetectionModelAbstractService {
+  protected model: tf.GraphModel | null = null;
+  protected probabilityThreshold = 0.5;
+  protected modelImageSize = 640;
 
-  constructor() {
-  }
 
-  async loadModel(modelUrl: string): Promise<void> {
-    // await tf.setBackend('webgpu')
-    // if (!) {
-    //   await tf.setBackend('webgl')
-    // }
-    this.model = await tf.loadGraphModel(modelUrl);
-    console.log(this.model)
-  }
+  abstract loadModel(modelUrl: string): Promise<void> ;
 
   async predict(videoFrame: ImageBitmap): Promise<DetectedObjectInformation[] | null> {
     if (!this.model) {
       console.error('Model not loaded');
       return null;
     }
+
     const tensor = await this.convertVideoFramesToTensor(videoFrame);
     const prediction = this.model.predict(tensor);
 
@@ -60,7 +52,7 @@ export class MLService {
     }
 
     const transformedBboxes = result.map(bbox => {
-      const transformedBbox = transformCoordinates(bbox, imgWidth, imgHeight, this._modelImageSize, this._modelImageSize);
+      const transformedBbox = transformCoordinates(bbox, imgWidth, imgHeight, this.modelImageSize, this.modelImageSize);
       const bestClassIndex = getBestClassIndex(bbox);
       return [...transformedBbox, bestClassIndex];
     });
@@ -87,10 +79,10 @@ export class MLService {
 
   private async convertVideoFramesToTensor(videoFrame: ImageBitmap) {
     const originalImageTensor = tf.browser.fromPixels(videoFrame);
-    const resizedImageTensor = originalImageTensor.resizeBilinear([this._modelImageSize, this._modelImageSize]);
+    const resizedImageTensor = originalImageTensor.resizeBilinear([this.modelImageSize, this.modelImageSize]);
     const scalar = tf.scalar(255);
     const normalizedImageTensor = resizedImageTensor.div(scalar);
-    const reshapedTensor = normalizedImageTensor.reshape([1, this._modelImageSize, this._modelImageSize, 3])
+    const reshapedTensor = normalizedImageTensor.reshape([1, this.modelImageSize, this.modelImageSize, 3])
 
     tf.dispose([originalImageTensor, resizedImageTensor, scalar, normalizedImageTensor]);
 
@@ -101,7 +93,7 @@ export class MLService {
     const mask = tf.tidy(() => {
       const classProbs = output.slice([0, 4], [-1, -1]);
       const maxProbs = classProbs.max(1);
-      return maxProbs.greater(tf.scalar(this._probabilityThreshold));
+      return maxProbs.greater(tf.scalar(this.probabilityThreshold));
     });
 
     const filteredBoxesTensor = await tf.booleanMaskAsync(output, mask);
