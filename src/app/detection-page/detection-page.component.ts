@@ -1,13 +1,12 @@
 import {AfterViewInit, Component, inject, OnDestroy, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {CameraVisualizationComponent} from "./camera-visualization/camera-visualization.component";
-import {
-  WebcamConnectionService,
-} from "../services";
+import {WebcamConnectionService,} from "../services";
 import {NotificationsListComponent} from "./notifications-list";
 import {MatIconModule} from "@angular/material/icon";
 import {MatButtonModule} from "@angular/material/button";
 import {DetectionPageService} from "./detection-page.service";
+import {BehaviorSubject} from "rxjs";
 
 @Component({
   selector: 'app-detection-page',
@@ -21,16 +20,27 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
   @ViewChild(CameraVisualizationComponent) cameraVisualization!: CameraVisualizationComponent;
 
   private _webcamConnectionService = inject(WebcamConnectionService)
-  private _detectionPageService = inject(DetectionPageService)
+  public _detectionPageService = inject(DetectionPageService)
 
 
   private availableCameras: MediaStreamConstraints[] = [];
 
 
+  private _worker!: Worker;
+  private _lastFrameStorage: BehaviorSubject<ImageBitmap | null> = new BehaviorSubject<ImageBitmap | null>(null)
+  private _initialMessageSent = false;
+
   cameraTrack: MediaStreamVideoTrack | null = null;
 
   async ngAfterViewInit() {
-    await this.initCameraDevices();
+    await this.initCameraDevices()
+
+
+    this._worker = new Worker(new URL('./detection.worker', import.meta.url));
+    this._worker.onmessage = ({data}) => {
+      console.log(data)
+    };
+
 
     this._detectionPageService.initModels().then((notificationsSubject) => {
       notificationsSubject.subscribe(notification => this.notificationList.addNotification(notification));
@@ -56,10 +66,9 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
         const trackGenerator = new MediaStreamTrackGenerator({kind: "video"});
 
         const transformer = this._webcamConnectionService.getVideoFrameTransform(async (frame) => {
-          const franeBitmap = await createImageBitmap(frame);
-          const predictions = await this._detectionPageService.predictOnImage(franeBitmap);
+          this._lastFrameStorage.next(await createImageBitmap(frame));
+          this.sendInitialMessage(this._lastFrameStorage.getValue()!)
 
-          this.cameraVisualization.drawRectanglesOnImage(franeBitmap, predictions);
           return frame.clone();
         })
 
@@ -88,4 +97,13 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
       }
     }))
   }
+
+  private sendInitialMessage(image: ImageBitmap) {
+    if (!this._initialMessageSent) {
+      this._worker.postMessage(image);
+    }
+    this._initialMessageSent = true
+  }
 }
+
+

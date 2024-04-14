@@ -35,12 +35,17 @@
     "@angular/cli": "^17.0.0",
     "@angular/compiler-cli": "^17.0.0",
     "@types/jasmine": "~5.1.0",
+    "@types/node": "^20.12.7",
+    "add": "^2.0.6",
+    "and": "^0.0.3",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "node": "^18.20.1",
+    "then": "^0.0.1",
     "typescript": "~5.2.2"
   }
 }

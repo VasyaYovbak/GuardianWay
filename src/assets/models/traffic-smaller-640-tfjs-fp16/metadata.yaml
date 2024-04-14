@@ -1,0 +1,16 @@
+description: Ultralytics traffic_smaller model trained on datasets/cinTA_v2/data.yaml
+author: Ultralytics
+date: '2024-04-09T16:21:44.382912'
+version: 8.1.45
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: green
+  1: red
+  2: yellow
