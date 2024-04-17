@@ -1,6 +1,7 @@
 import {Routes} from '@angular/router';
 import {HomePageComponent} from "./home-page/home-page.component";
 import {InitialPageComponent} from "./initial-page/initial-page.component";
+import {InformationPageComponent} from "./information-page";
 
 export const routes: Routes = [
   {
@@ -17,6 +18,9 @@ export const routes: Routes = [
       import('./detection-page').then(
         (lib) => lib.DETECTION_PAGE_ROUTES,
       ),
+  },
+  {
+    component: InformationPageComponent, title: 'Information', path: 'info', data: {animation: 'InformationPage'}
   },
   {path: '**', redirectTo: '', pathMatch: 'full'},
 ];
