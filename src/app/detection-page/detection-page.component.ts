@@ -17,8 +17,13 @@ export class DetectionPageComponent implements AfterViewInit {
   cameraStream: MediaStream | null = null;
 
   ngAfterViewInit() {
-    this._webcamConnectionService.createVideoStream().subscribe(stream => {
-      this.cameraStream = stream;
+    this._webcamConnectionService.createVideoStream().subscribe({
+      next: stream => {
+        this.cameraStream = stream;
+      },
+      error: err => {
+        console.log(err)
+      }
     })
   }
 
