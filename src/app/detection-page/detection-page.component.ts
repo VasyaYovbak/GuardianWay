@@ -1,10 +1,11 @@
-import {AfterViewInit, Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {CameraVisualizationComponent} from "./camera-visualization/camera-visualization.component";
-import {MLService, WebcamConnectionService} from "../services";
+import {MLService, WebcamConnectionService, GeolocationService, HandleDetectionsService} from "../services";
 import {NotificationsListComponent} from "./notifications-list";
 import {MatIconModule} from "@angular/material/icon";
 import {MatButtonModule} from "@angular/material/button";
+import {DetectedObjectInformation} from "../models";
 
 @Component({
   selector: 'app-detection-page',
@@ -14,8 +15,13 @@ import {MatButtonModule} from "@angular/material/button";
   styleUrl: './detection-page.component.scss'
 })
 export class DetectionPageComponent implements AfterViewInit, OnDestroy {
+  @ViewChild(NotificationsListComponent) notificationList!: NotificationsListComponent;
+
   private _webcamConnectionService = inject(WebcamConnectionService)
   private _MLService = inject(MLService)
+  private _HandleDetectionsService = inject(HandleDetectionsService)
+
+
   private _canvas = document.createElement('canvas');
   videoStream: MediaStream | null = this._canvas.captureStream();
 
@@ -26,6 +32,12 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
 
   async ngAfterViewInit() {
     await this.initCameraDevices();
+    this._HandleDetectionsService.createStorageForClass('pothole');
+    this._HandleDetectionsService.setFrameRateTarget('pothole', 30);
+
+    this._HandleDetectionsService.notificationsSubject
+      .subscribe(notification => this.notificationList.addNotification(notification))
+
 
     this._MLService.loadModel('assets/models/best-pothole-640-tfjs-uint8/model.json').then(() => {
       this.createCameraStream();
@@ -34,6 +46,7 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.cameraTrack?.stop();
+    this._MLService.disposeModel();
   }
 
   private createCameraStream() {
@@ -50,10 +63,10 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
 
         const transformer = this._webcamConnectionService.getVideoFrameTransform(async (frame) => {
           const franeBitmap = await createImageBitmap(frame)
-          console.log(frame.codedWidth)
-          const predictions = await this._MLService.predict(franeBitmap);
-          this.drawRectanglesOnImage(franeBitmap, predictions ?? [])
+          const predictions = await this._MLService.predict(franeBitmap) ?? [];
+          this._HandleDetectionsService.addDetectionsToStorage('pothole', predictions);
 
+          this.drawRectanglesOnImage(franeBitmap, predictions)
           return frame.clone();
         })
 
@@ -66,7 +79,13 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  drawRectanglesOnImage(imageBitmap: ImageBitmap, bboxes: number[][]) {
+  protected changeInputCamera() {
+    this.cameraTrack?.stop();
+    this.availableCameras.push(this.availableCameras.shift()!);
+    this.createCameraStream();
+  }
+
+  private drawRectanglesOnImage(imageBitmap: ImageBitmap, detectedObjects: DetectedObjectInformation[]) {
     const ctx = this._canvas.getContext('2d')!;
 
     this._canvas.width = imageBitmap.width;
@@ -74,8 +93,8 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
 
     ctx.drawImage(imageBitmap, 0, 0);
 
-    bboxes.forEach(bbox => {
-      const [x, y, w, h] = bbox;
+    detectedObjects.forEach(detectedObject => {
+      const {x, y, w, h} = detectedObject.bbox;
       ctx.beginPath();
       ctx.strokeStyle = 'red';
       ctx.lineWidth = 3;
@@ -84,7 +103,8 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  async initCameraDevices() {
+
+  private async initCameraDevices() {
     const devices = await navigator.mediaDevices.enumerateDevices();
     this.availableCameras = devices.filter(device => device.kind === "videoinput").map(device => ({
       video: {
@@ -92,11 +112,5 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
         frameRate: 30
       }
     }))
-  }
-
-  changeInputCamera() {
-    this.cameraTrack?.stop();
-    this.availableCameras.push(this.availableCameras.shift()!);
-    this.createCameraStream();
   }
 }

@@ -1,6 +1,5 @@
 import {Injectable} from '@angular/core';
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
-import {log} from "@angular-devkit/build-angular/src/builders/ssr-dev-server";
 
 @Injectable({
   providedIn: 'root'
@@ -26,7 +25,9 @@ export class WebcamConnectionService {
           transformedFrame = new VideoFrame(transformedFrame, bufferInit)
         }
 
-        videoFrame.close()
+        if (videoFrame.displayHeight != 0) {
+          videoFrame.close()
+        }
 
         controller.enqueue(transformedFrame)
       },
