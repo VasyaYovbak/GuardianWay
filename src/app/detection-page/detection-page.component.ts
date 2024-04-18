@@ -1,11 +1,13 @@
-import {AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {CameraVisualizationComponent} from "./camera-visualization/camera-visualization.component";
-import {MLService, WebcamConnectionService, GeolocationService, HandleDetectionsService} from "../services";
+import {WebcamConnectionService,} from "../services";
 import {NotificationsListComponent} from "./notifications-list";
 import {MatIconModule} from "@angular/material/icon";
 import {MatButtonModule} from "@angular/material/button";
-import {DetectedObjectInformation} from "../models";
+
+
+import {DetectionPageService} from "./detection-page.service";
 
 @Component({
   selector: 'app-detection-page',
@@ -14,39 +16,48 @@ import {DetectedObjectInformation} from "../models";
   templateUrl: './detection-page.component.html',
   styleUrl: './detection-page.component.scss'
 })
-export class DetectionPageComponent implements AfterViewInit, OnDestroy {
+export class DetectionPageComponent implements AfterViewInit, OnDestroy, OnInit {
   @ViewChild(NotificationsListComponent) notificationList!: NotificationsListComponent;
+  @ViewChild(CameraVisualizationComponent) cameraVisualization!: CameraVisualizationComponent;
 
   private _webcamConnectionService = inject(WebcamConnectionService)
-  private _MLService = inject(MLService)
-  private _HandleDetectionsService = inject(HandleDetectionsService)
+  public _detectionPageService = inject(DetectionPageService)
 
-
-  private _canvas = document.createElement('canvas');
-  videoStream: MediaStream | null = this._canvas.captureStream();
 
   private availableCameras: MediaStreamConstraints[] = [];
 
 
+  private _isWorkerReady = false;
+
   cameraTrack: MediaStreamVideoTrack | null = null;
 
+  ngOnInit() {
+    this._detectionPageService.initWebWorker();
+  }
+
   async ngAfterViewInit() {
-    await this.initCameraDevices();
-    this._HandleDetectionsService.createStorageForClass('pothole');
-    this._HandleDetectionsService.setFrameRateTarget('pothole', 30);
+    await this.initCameraDevices()
 
-    this._HandleDetectionsService.notificationsSubject
-      .subscribe(notification => this.notificationList.addNotification(notification))
+    this.createCameraStream();
 
-
-    this._MLService.loadModel('assets/models/best-pothole-640-tfjs-uint8/model.json').then(() => {
-      this.createCameraStream();
+    this._detectionPageService.isWorkerReadySubject.subscribe((state) => {
+      this._isWorkerReady = state;
     })
+
+    this._detectionPageService.detectionResponseSubject.subscribe((data) => {
+      this.cameraVisualization.drawRectanglesOnImage(data.image, data.predictions)
+    })
+
+
+    // this._detectionPageService.initModels().then((notificationsSubject) => {
+    //   notificationsSubject.subscribe(notification => this.notificationList.addNotification(notification));
+    //   this.createCameraStream();
+    // })
   }
 
   ngOnDestroy(): void {
     this.cameraTrack?.stop();
-    this._MLService.disposeModel();
+    this._detectionPageService.disposeModels();
   }
 
   private createCameraStream() {
@@ -62,11 +73,8 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
         const trackGenerator = new MediaStreamTrackGenerator({kind: "video"});
 
         const transformer = this._webcamConnectionService.getVideoFrameTransform(async (frame) => {
-          const franeBitmap = await createImageBitmap(frame)
-          const predictions = await this._MLService.predict(franeBitmap) ?? [];
-          this._HandleDetectionsService.addDetectionsToStorage('pothole', predictions);
+          this.sendMessage(await createImageBitmap(frame))
 
-          this.drawRectanglesOnImage(franeBitmap, predictions)
           return frame.clone();
         })
 
@@ -85,24 +93,6 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
     this.createCameraStream();
   }
 
-  private drawRectanglesOnImage(imageBitmap: ImageBitmap, detectedObjects: DetectedObjectInformation[]) {
-    const ctx = this._canvas.getContext('2d')!;
-
-    this._canvas.width = imageBitmap.width;
-    this._canvas.height = imageBitmap.height;
-
-    ctx.drawImage(imageBitmap, 0, 0);
-
-    detectedObjects.forEach(detectedObject => {
-      const {x, y, w, h} = detectedObject.bbox;
-      ctx.beginPath();
-      ctx.strokeStyle = 'red';
-      ctx.lineWidth = 3;
-      ctx.rect(x - w / 2, y - h / 2, w, h);
-      ctx.stroke();
-    });
-  }
-
 
   private async initCameraDevices() {
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -113,4 +103,12 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
       }
     }))
   }
+
+  private sendMessage(image: ImageBitmap) {
+    if (this._isWorkerReady) {
+      this._detectionPageService.predictOnImage(image)
+    }
+  }
 }
+
+

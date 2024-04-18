@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 
 @Injectable({
   providedIn: 'root',
@@ -9,7 +9,10 @@ export class GeolocationService {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => resolve(position),
-          (error) => reject(error)
+          (error) => reject(error),
+          {
+            enableHighAccuracy: true
+          }
         );
       } else {
         reject(new Error('Геолокація не підтримується вашим браузером.'));
