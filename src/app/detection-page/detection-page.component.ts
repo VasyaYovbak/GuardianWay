@@ -1,12 +1,13 @@
-import {AfterViewInit, Component, inject, OnDestroy, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {CameraVisualizationComponent} from "./camera-visualization/camera-visualization.component";
 import {WebcamConnectionService,} from "../services";
 import {NotificationsListComponent} from "./notifications-list";
 import {MatIconModule} from "@angular/material/icon";
 import {MatButtonModule} from "@angular/material/button";
+
+
 import {DetectionPageService} from "./detection-page.service";
-import {BehaviorSubject} from "rxjs";
 
 @Component({
   selector: 'app-detection-page',
@@ -15,7 +16,7 @@ import {BehaviorSubject} from "rxjs";
   templateUrl: './detection-page.component.html',
   styleUrl: './detection-page.component.scss'
 })
-export class DetectionPageComponent implements AfterViewInit, OnDestroy {
+export class DetectionPageComponent implements AfterViewInit, OnDestroy, OnInit {
   @ViewChild(NotificationsListComponent) notificationList!: NotificationsListComponent;
   @ViewChild(CameraVisualizationComponent) cameraVisualization!: CameraVisualizationComponent;
 
@@ -26,26 +27,32 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
   private availableCameras: MediaStreamConstraints[] = [];
 
 
-  private _worker!: Worker;
-  private _lastFrameStorage: BehaviorSubject<ImageBitmap | null> = new BehaviorSubject<ImageBitmap | null>(null)
-  private _initialMessageSent = false;
+  private _isWorkerReady = false;
 
   cameraTrack: MediaStreamVideoTrack | null = null;
+
+  ngOnInit() {
+    this._detectionPageService.initWebWorker();
+  }
 
   async ngAfterViewInit() {
     await this.initCameraDevices()
 
+    this.createCameraStream();
 
-    this._worker = new Worker(new URL('./detection.worker', import.meta.url));
-    this._worker.onmessage = ({data}) => {
-      console.log(data)
-    };
-
-
-    this._detectionPageService.initModels().then((notificationsSubject) => {
-      notificationsSubject.subscribe(notification => this.notificationList.addNotification(notification));
-      this.createCameraStream();
+    this._detectionPageService.isWorkerReadySubject.subscribe((state) => {
+      this._isWorkerReady = state;
     })
+
+    this._detectionPageService.detectionResponseSubject.subscribe((data) => {
+      this.cameraVisualization.drawRectanglesOnImage(data.image, data.predictions)
+    })
+
+
+    // this._detectionPageService.initModels().then((notificationsSubject) => {
+    //   notificationsSubject.subscribe(notification => this.notificationList.addNotification(notification));
+    //   this.createCameraStream();
+    // })
   }
 
   ngOnDestroy(): void {
@@ -66,8 +73,7 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
         const trackGenerator = new MediaStreamTrackGenerator({kind: "video"});
 
         const transformer = this._webcamConnectionService.getVideoFrameTransform(async (frame) => {
-          this._lastFrameStorage.next(await createImageBitmap(frame));
-          this.sendInitialMessage(this._lastFrameStorage.getValue()!)
+          this.sendMessage(await createImageBitmap(frame))
 
           return frame.clone();
         })
@@ -98,11 +104,10 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy {
     }))
   }
 
-  private sendInitialMessage(image: ImageBitmap) {
-    if (!this._initialMessageSent) {
-      this._worker.postMessage(image);
+  private sendMessage(image: ImageBitmap) {
+    if (this._isWorkerReady) {
+      this._detectionPageService.predictOnImage(image)
     }
-    this._initialMessageSent = true
   }
 }
 

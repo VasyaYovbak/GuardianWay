@@ -2,3 +2,4 @@ export {TrafficLightDetectionModelService} from "./traffic-light-detection-model
 
 export {PotholeDetectionModelService} from "./pothole-detection-model.service";
 
+export * from './models'

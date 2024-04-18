@@ -1,43 +1,70 @@
 import {inject, Injectable} from "@angular/core";
-import {HandleDetectionsService, PotholeDetectionModelService, TrafficLightDetectionModelService} from "../services";
-import {Subject} from "rxjs";
-import {NotificationModel} from "./notifications-list";
+import {
+  HandleDetectionsService,
+  POTHOLE_CLASS_IDS,
+  TRAFFIC_LIGHT_CLASS_IDS,
+} from "../services";
+import {BehaviorSubject, Subject} from "rxjs";
+import {ImageDetectionDataModel, WebWorkerDetectionMessage, WebWorkerMessage, WebWorkerMessageType} from "./models";
 
 @Injectable({
   providedIn: "root"
 })
 export class DetectionPageService {
-  private _handleDetectionsService = inject(HandleDetectionsService)
-  // private _potholeDetectionModelService = inject(PotholeDetectionModelService)
-  private _trafficLightDetectionModelService = inject(TrafficLightDetectionModelService)
+  private _handleDetectionsService = inject(HandleDetectionsService);
+  private _worker: Worker | null = null;
 
-  async initModels(): Promise<Subject<NotificationModel>> {
-    return new Promise((resolve) => {
-      // this._potholeDetectionModelService.loadModel();
-      this._trafficLightDetectionModelService.loadModel();
+  public isWorkerReadySubject = new BehaviorSubject<boolean>(false);
+  public detectionResponseSubject = new Subject<ImageDetectionDataModel>()
 
-      this._handleDetectionsService.createStorageForClass('pothole');
-      this._handleDetectionsService.setFrameRateTarget('pothole', 30);
-
-      this._handleDetectionsService.createStorageForClass('traffic');
-      this._handleDetectionsService.setFrameRateTarget('traffic', 30);
-
-      resolve(this._handleDetectionsService.notificationsSubject)
-    })
+  constructor() {
+    this.initStorage();
   }
 
-  async predictOnImage(franeBitmap: ImageBitmap) {
-    // const pothole_predictions = await this._potholeDetectionModelService.predict(franeBitmap) ?? [];
-    // this._handleDetectionsService.addDetectionsToStorage('pothole', pothole_predictions);
+  initWebWorker() {
+    if (this._worker == null) {
+      this._worker = new Worker(new URL('./detection.worker', import.meta.url));
 
-    const traffic_detection = await this._trafficLightDetectionModelService.predict(franeBitmap) ?? [];
-    this._handleDetectionsService.addDetectionsToStorage('traffic', traffic_detection);
+      this._worker.onmessage = ({data}: { data: WebWorkerMessage }) => {
+        if (data.type == WebWorkerMessageType.InitialMessage) {
+          console.log('createCameraStream');
+          this.isWorkerReadySubject.next(true);
+        }
 
-    return traffic_detection
+        if (data.type == WebWorkerMessageType.DetectionMessage) {
+          console.log("detected");
+          this.handleWorkerDetectionMessage(data);
+        }
+      };
+    }
+
+  }
+
+  handleWorkerDetectionMessage(message: WebWorkerDetectionMessage) {
+    this.detectionResponseSubject.next(message.data);
+    this.isWorkerReadySubject.next(true);
+
+    this._handleDetectionsService.addDetectionsToStorage('pothole',
+      message.data.predictions.filter(value => POTHOLE_CLASS_IDS.includes(value.class)));
+    this._handleDetectionsService.addDetectionsToStorage('traffic',
+      message.data.predictions.filter(value => TRAFFIC_LIGHT_CLASS_IDS.includes(value.class)));
+  }
+
+  predictOnImage(image: ImageBitmap) {
+    this.isWorkerReadySubject.next(false);
+    this._worker?.postMessage(image)
   }
 
   disposeModels() {
-    // this._potholeDetectionModelService.disposeModel();
-    this._trafficLightDetectionModelService.disposeModel();
+    this._worker?.terminate()
+    this._worker = null;
+  }
+
+  private initStorage() {
+    this._handleDetectionsService.createStorageForClass('pothole');
+    this._handleDetectionsService.setFrameRateTarget('pothole', 30);
+
+    this._handleDetectionsService.createStorageForClass('traffic');
+    this._handleDetectionsService.setFrameRateTarget('traffic', 30);
   }
 }

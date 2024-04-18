@@ -87,6 +87,7 @@ export class HandleDetectionsService {
       }
 
       console.log(potholeCounts / this._frameRateTarget.get(classNameOrId)!)
+      console.log(detections[0].coords)
     }
   }
 

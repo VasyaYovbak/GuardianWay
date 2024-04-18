@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {DetectedObjectInformation} from "../../models";
+import {DetectedObjectInformationWithVisualInfo} from "../../models";
 
 @Component({
   selector: 'app-camera-visualization',
@@ -14,7 +14,7 @@ export class CameraVisualizationComponent {
 
   protected videoStream: MediaStream = this._canvas.captureStream();
 
-  public drawRectanglesOnImage(imageBitmap: ImageBitmap, detectedObjects: DetectedObjectInformation[]) {
+  public drawRectanglesOnImage(imageBitmap: ImageBitmap, detectedObjects: DetectedObjectInformationWithVisualInfo[]) {
     const ctx = this._canvas.getContext('2d')!;
 
     this._canvas.width = imageBitmap.width;
@@ -25,7 +25,7 @@ export class CameraVisualizationComponent {
     detectedObjects.forEach(detectedObject => {
       const {x, y, w, h} = detectedObject.bbox;
       ctx.beginPath();
-      ctx.strokeStyle = 'red';
+      ctx.strokeStyle = detectedObject.color;
       ctx.lineWidth = 3;
       ctx.rect(x - w / 2, y - h / 2, w, h);
       ctx.stroke();

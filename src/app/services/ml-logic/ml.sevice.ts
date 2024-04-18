@@ -11,6 +11,7 @@ import {DetectedObjectInformation} from "../../models";
 export abstract class DetectionModelAbstractService {
   protected model: tf.GraphModel | null = null;
   protected probabilityThreshold = 0.5;
+  protected iou = 0.7;
   protected modelImageSize = 640;
 
 
@@ -39,7 +40,7 @@ export abstract class DetectionModelAbstractService {
     const filteredBoxes = await this.filterBoxes(selectedOutput);
     let filteredOutput = await filteredBoxes.array() as number[][];
 
-    filteredOutput.sort((a, b) => b[4] - a[4]);
+    filteredOutput.sort((a, b) => Math.max(...b.slice(4)) - Math.max(...a.slice(4)));
 
     let result = [];
     while (filteredOutput.length > 0) {
@@ -48,7 +49,7 @@ export abstract class DetectionModelAbstractService {
         break;
       }
       result.push(currentBox);
-      filteredOutput = filteredOutput.filter(box => iou(box, currentBox!) < 0.7);
+      filteredOutput = filteredOutput.filter(box => iou(box, currentBox!) < this.iou);
     }
 
     const transformedBboxes = result.map(bbox => {
