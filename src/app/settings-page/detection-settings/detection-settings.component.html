@@ -1,0 +1,24 @@
+<div class="back-button" (click)="goBack()">
+  <button mat-icon-button>
+    <mat-icon>keyboard_arrow_left</mat-icon>
+  </button>
+  <span>
+    Back
+  </span>
+</div>
+<p class="gw-text main-text"> Camera Detection Settings</p>
+<mat-divider></mat-divider>
+<ng-container [formGroup]="form">
+  <div class="settings-element">
+    <span class="gw-text">Highlight potholes on video</span>
+    <mat-slide-toggle color="primary" formControlName="showPotholes" (change)="updateSettingsConfig()">
+    </mat-slide-toggle>
+  </div>
+  <mat-divider></mat-divider>
+  <div class="settings-element">
+    <span class="gw-text">Highlight traffic light on video</span>
+    <mat-slide-toggle color="primary" formControlName="showTrafficLights" (change)="updateSettingsConfig()">
+    </mat-slide-toggle>
+  </div>
+</ng-container>
+<mat-divider></mat-divider>
