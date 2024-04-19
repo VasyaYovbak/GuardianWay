@@ -1,0 +1,30 @@
+<div class="card">
+  <p class="card-text">Login</p>
+  <form class="form" [formGroup]="form">
+    <mat-form-field appearance="fill">
+      <mat-label>Email address</mat-label>
+      <input autocomplete="email" formControlName="email" matInput type="email" placeholder="Email address" required/>
+      @if (form.controls.email.hasError('required')) {
+        <mat-error>Field is required</mat-error>
+      } @else if (form.controls.email.hasError('email')) {
+        <mat-error>This field should be valid email</mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Password</mat-label>
+      <input autocomplete="current-password" formControlName="password" matInput type="password" placeholder="Password"
+             required/>
+      @if (form.controls.password.hasError('required')) {
+        <mat-error>Field is required</mat-error>
+      } @else if (form.controls.password.hasError('minlength')) {
+        <mat-error>Minimal password length is 8</mat-error>
+      }
+    </mat-form-field>
+    <a (click)="onForgot()">Forgot password?</a>
+    <button mat-raised-button class="submit-button" (click)="onLogin()">Login</button>
+  </form>
+
+  <button mat-button class="circle-button" routerLink="/register">
+    <p class="card-text">Signup</p>
+  </button>
+</div>

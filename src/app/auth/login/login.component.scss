@@ -1,0 +1,84 @@
+@use 'variables' as *;
+
+
+:host {
+  display: flex;
+  flex: 1;
+  //align-items: center;
+  //padding-top: 100px;
+}
+
+.card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  margin: 10%;
+  padding-top: 30px;
+  height: 450px;
+  background-color: $gw-light-blue;
+  border-radius: 20px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+
+  .card-text {
+    font-size: 30px;
+    text-align: center;
+    color: #fff;
+    font-weight: 400;
+    cursor: pointer;
+  }
+
+  .circle-button {
+    display: flex;
+    width: calc(100% + 10px);
+    height: 100%;
+    border-radius: 50% 50% 0 0;
+    background-color: white;
+    flex: 1;
+    align-items: flex-start;
+    justify-content: center;
+    margin-top: 70px;
+    margin-bottom: -110px;
+    pointer-events: all;
+
+    p {
+      padding-top: 30px;
+      font-weight: 400;
+      color: black;
+    }
+  }
+}
+
+::ng-deep {
+  app-login {
+    mat-error {
+      font-size: 14px;
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      //gap: 20px;
+      margin-top: 20px;
+      padding: 0 20px 0 20px;
+      width: 100%;
+
+      mat-form-field {
+        width: 100%;
+      }
+
+      .mat-mdc-text-field-wrapper {
+        border-radius: 12px;
+        background-color: white;
+      }
+
+      .submit-button {
+        width: 100%;
+        height: 46px;
+      }
+    }
+  }
+}
+

@@ -7,3 +7,5 @@ export {WebcamConnectionService} from "./webcam-connection.service";
 export {GeolocationService} from './geolocation.service'
 
 export * from './ml-logic'
+
+export {CookieService} from './cookie.service'
