@@ -37,9 +37,9 @@ export class LoginComponent {
   onLogin() {
     if (this.form.valid) {
       this._authService.login(this.form.getRawValue()).subscribe({
-        next: (data) => {
+        next: (jwt) => {
           this._matSnackBar.open('You Successfully Logged In!', 'Okay');
-          this._jwtService.setJWT(data);
+          this._jwtService.setJWT(jwt);
           this._router.navigate(['/home'])
         },
         error: (error: HttpErrorResponse) => {

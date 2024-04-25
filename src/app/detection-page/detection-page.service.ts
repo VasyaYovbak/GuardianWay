@@ -1,11 +1,8 @@
 import {inject, Injectable} from "@angular/core";
-import {
-  HandleDetectionsService,
-  POTHOLE_CLASS_IDS,
-  TRAFFIC_LIGHT_CLASS_IDS,
-} from "../services";
+import {HandleDetectionsService, POTHOLE_CLASS_IDS,} from "../services";
 import {BehaviorSubject, Subject} from "rxjs";
 import {ImageDetectionDataModel, WebWorkerDetectionMessage, WebWorkerMessage, WebWorkerMessageType} from "./models";
+import {NotificationModel} from "./notifications-list";
 
 @Injectable({
   providedIn: "root"
@@ -17,9 +14,8 @@ export class DetectionPageService {
   public isWorkerReadySubject = new BehaviorSubject<boolean>(false);
   public detectionResponseSubject = new Subject<ImageDetectionDataModel>()
 
-  constructor() {
-    this.initStorage();
-  }
+  notificationsSubject: Subject<NotificationModel> = this._handleDetectionsService.notificationsSubject;
+
 
   initWebWorker() {
     if (this._worker == null) {
@@ -32,7 +28,6 @@ export class DetectionPageService {
         }
 
         if (data.type == WebWorkerMessageType.DetectionMessage) {
-          console.log("detected");
           this.handleWorkerDetectionMessage(data);
         }
       };
@@ -46,8 +41,8 @@ export class DetectionPageService {
 
     this._handleDetectionsService.addDetectionsToStorage('pothole',
       message.data.predictions.filter(value => POTHOLE_CLASS_IDS.includes(value.class)));
-    this._handleDetectionsService.addDetectionsToStorage('traffic',
-      message.data.predictions.filter(value => TRAFFIC_LIGHT_CLASS_IDS.includes(value.class)));
+    // this._handleDetectionsService.addDetectionsToStorage('traffic',
+    //   message.data.predictions.filter(value => TRAFFIC_LIGHT_CLASS_IDS.includes(value.class)));
   }
 
   predictOnImage(image: ImageBitmap) {
@@ -60,11 +55,5 @@ export class DetectionPageService {
     this._worker = null;
   }
 
-  private initStorage() {
-    this._handleDetectionsService.createStorageForClass('pothole');
-    this._handleDetectionsService.setFrameRateTarget('pothole', 30);
 
-    this._handleDetectionsService.createStorageForClass('traffic');
-    this._handleDetectionsService.setFrameRateTarget('traffic', 30);
-  }
 }

@@ -14,3 +14,10 @@ export interface DetectedObjectInformationWithVisualInfo extends DetectedObjectI
   color: string,
   label: string
 }
+
+export interface DetectionUnitInfo {
+  location: GeolocationCoordinates,
+  timestamp: string,
+  object_id: number,
+  density: number
+}

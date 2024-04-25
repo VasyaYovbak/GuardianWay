@@ -8,6 +8,7 @@ import {MatButtonModule} from "@angular/material/button";
 
 
 import {DetectionPageService} from "./detection-page.service";
+import {DetectionHubService} from "../http/detection-hub/detection-hub.service";
 
 @Component({
   selector: 'app-detection-page',
@@ -22,7 +23,7 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy, OnInit 
 
   private _webcamConnectionService = inject(WebcamConnectionService)
   public _detectionPageService = inject(DetectionPageService)
-
+  private _detectionHubService = inject(DetectionHubService)
 
   private availableCameras: MediaStreamConstraints[] = [];
 
@@ -33,6 +34,10 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy, OnInit 
 
   ngOnInit() {
     this._detectionPageService.initWebWorker();
+    this._detectionHubService.connectToHub();
+    this._detectionPageService.notificationsSubject.subscribe((item) => {
+      this.notificationList.addNotification(item);
+    })
   }
 
   async ngAfterViewInit() {
@@ -58,6 +63,7 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy, OnInit 
   ngOnDestroy(): void {
     this.cameraTrack?.stop();
     this._detectionPageService.disposeModels();
+    this._detectionHubService.disconnectFromHub();
   }
 
   private createCameraStream() {
@@ -99,7 +105,7 @@ export class DetectionPageComponent implements AfterViewInit, OnDestroy, OnInit 
     this.availableCameras = devices.filter(device => device.kind === "videoinput").map(device => ({
       video: {
         deviceId: device.deviceId,
-        frameRate: 30
+        frameRate: 8
       }
     }))
   }
