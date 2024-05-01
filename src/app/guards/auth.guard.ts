@@ -6,9 +6,9 @@ import {JwtService} from "../http/jwt";
 export const AuthorizeGuard: CanActivateFn = () => {
   const jwtService = inject(JwtService);
   const router = inject(Router)
-  const refreshToken = jwtService.getRefreshToken();
+  const isJWTExist = jwtService.isJWTExist();
 
-  if (refreshToken == null) {
+  if (!isJWTExist) {
     router.navigate(['/login'])
     return false;
   }

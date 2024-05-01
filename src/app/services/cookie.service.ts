@@ -10,7 +10,7 @@ export class CookieService {
     this.parseCookies(document.cookie);
   }
 
-  private parseCookies(cookies = document.cookie) {
+  public parseCookies(cookies = document.cookie) {
     this.cookieStore = new Map<string, string>();
     if (!cookies) {
       return;
