@@ -3,7 +3,7 @@ import {
   HTTP_INTERCEPTORS,
   HttpErrorResponse,
   HttpEvent,
-  HttpHandler,
+  HttpHandler, HttpHeaders,
   HttpInterceptor,
   HttpRequest
 } from '@angular/common/http';
@@ -19,10 +19,15 @@ export class HttpRequestInterceptor implements HttpInterceptor {
   private _jwtService = inject(JwtService)
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    req = req.clone({
-      url: req.url,
-      withCredentials: true,
-    });
+    if (!req.url.includes('refresh')) {
+      req = req.clone({
+        url: req.url,
+        headers: new HttpHeaders({
+          "Authorization": "Bearer " + this._jwtService.getAccessToken(),
+          'ngsw-bypass': 'true'
+        })
+      });
+    }
 
     return next.handle(req).pipe(
       catchError((error) => {

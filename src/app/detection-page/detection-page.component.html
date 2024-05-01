@@ -1,6 +1,8 @@
 <button mat-icon-button class="camera-button" (click)="changeInputCamera()">
   <mat-icon>switch_camera</mat-icon>
 </button>
-<app-camera-visualization class="player"></app-camera-visualization>
+<app-camera-visualization class="player" (play)="onPlay()" (pause)="onPause()"></app-camera-visualization>
 
 <app-notifications-list class="notification-list"></app-notifications-list>
+
+<button mat-flat-button (click)="onSave()"> SAVE ALL BATCHES</button>

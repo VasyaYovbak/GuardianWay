@@ -1,5 +1,6 @@
 import {Injectable} from '@angular/core';
 import {DetectionUnitInfo} from "../models";
+import {Subject} from "rxjs";
 
 export interface Batch {
   batchId: string;
@@ -12,6 +13,8 @@ export interface Batch {
 export class DetectionStorageService {
   public batch_size = 16;
   currentBatch: DetectionUnitInfo[] = [];
+
+  public batchSaved: Subject<void> = new Subject();
 
   saveData(unit: DetectionUnitInfo): void {
     this.currentBatch.push(unit);
@@ -27,6 +30,7 @@ export class DetectionStorageService {
       localStorage.setItem('batches', JSON.stringify(batches));
       this.currentBatch = [];
       console.log('Batch saved!')
+      this.batchSaved.next();
     }
   }
 

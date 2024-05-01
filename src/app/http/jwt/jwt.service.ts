@@ -1,9 +1,9 @@
 import {inject, Injectable} from '@angular/core';
 import {CookieService} from "../../services";
 import {ACCESS_TOKEN, JWTModel, REFRESH_TOKEN} from "./models";
-import {HttpClient} from "@angular/common/http";
+import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {BE_HTTP_API_URL} from "../../global.variables";
-import {catchError} from "rxjs/operators";
+import {catchError, tap} from "rxjs/operators";
 import {throwError} from "rxjs";
 import {Router} from "@angular/router";
 import {MatSnackBar} from "@angular/material/snack-bar";
@@ -22,6 +22,10 @@ export class JwtService {
     this._cookieService.set(REFRESH_TOKEN, jwt[REFRESH_TOKEN])
   }
 
+  setAccessToken(token: string) {
+    this._cookieService.set(ACCESS_TOKEN, token)
+  }
+
   clearJWT() {
     this._cookieService.remove(ACCESS_TOKEN)
     this._cookieService.remove(REFRESH_TOKEN)
@@ -31,10 +35,18 @@ export class JwtService {
     return this._cookieService.get(REFRESH_TOKEN) != null;
   }
 
+  getAccessToken() {
+    return this._cookieService.get(ACCESS_TOKEN);
+  }
+
+  getRefreshToken() {
+    return this._cookieService.get(REFRESH_TOKEN);
+  }
+
   refreshJWT() {
     return this._http.post<{
       [ACCESS_TOKEN]: string
-    }>(BE_HTTP_API_URL + '/refresh', {}).pipe(catchError((error) => {
+    }>(BE_HTTP_API_URL + '/refresh', {}, {headers: new HttpHeaders({'Authorization': "Bearer " + this.getRefreshToken()})}).pipe(catchError((error) => {
       if (error.status == '401') {
         this._matSnackBar.open('Your session has timed out, please log in again', 'Okay');
         this.clearJWT();
@@ -42,6 +54,6 @@ export class JwtService {
       }
 
       return throwError(() => error);
-    }))
+    }),tap(value=>this.setAccessToken(value[ACCESS_TOKEN])))
   }
 }

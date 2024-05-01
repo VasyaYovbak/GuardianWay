@@ -10,7 +10,7 @@ export class SocketAuth {
   private _jwtService = inject(JwtService);
 
   initSocket(uri: string, opts?: Partial<ManagerOptions & SocketOptions>) {
-    this.socket = io(uri, opts);
+    this.socket = io(uri, {...opts, extraHeaders: {'Authorization': "Bearer " + this._jwtService.getAccessToken()}});
 
     this.socket.on('disconnect', () => {
       this.socket.close();
