@@ -15,7 +15,7 @@ export class DetectionHubService {
 
 
   connectToHub() {
-    this._socketAuth.initSocket(BE_SOCKETS_API, {withCredentials: true, reconnection: false});
+    this._socketAuth.initSocket(BE_SOCKETS_API, {reconnection: false});
 
     this._socketAuth.socket.on('batch_saved', (batchId: string) => {
       console.log(batchId);

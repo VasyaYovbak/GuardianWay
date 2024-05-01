@@ -24,8 +24,9 @@ export abstract class DetectionModelAbstractService {
     }
 
     const tensor = await this.convertVideoFramesToTensor(videoFrame);
+    const start_time = Date.now();
     const prediction = this.model.predict(tensor);
-
+    console.log(Date.now() - start_time);
     tf.dispose(tensor);
 
     if (!(prediction instanceof tf.Tensor)) {
@@ -78,7 +79,7 @@ export abstract class DetectionModelAbstractService {
     }
   }
 
-  private async convertVideoFramesToTensor(videoFrame: ImageBitmap) {
+  async convertVideoFramesToTensor(videoFrame: ImageBitmap) {
     const originalImageTensor = tf.browser.fromPixels(videoFrame);
     const resizedImageTensor = originalImageTensor.resizeBilinear([this.modelImageSize, this.modelImageSize]);
     const scalar = tf.scalar(255);

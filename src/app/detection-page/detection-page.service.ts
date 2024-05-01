@@ -23,7 +23,6 @@ export class DetectionPageService {
 
       this._worker.onmessage = ({data}: { data: WebWorkerMessage }) => {
         if (data.type == WebWorkerMessageType.InitialMessage) {
-          console.log('createCameraStream');
           this.isWorkerReadySubject.next(true);
         }
 

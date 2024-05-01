@@ -10,7 +10,10 @@ const {WebWorkerMessageType} = require('./models')
 const potholeDetector = new PotholeDetectionModelService();
 // const trafficDetector = new TrafficLightDetectionModelService();
 
-Promise.all([potholeDetector.loadModel()]).then(() => {
+Promise.all([
+  potholeDetector.loadModel()
+  // ,trafficDetector.loadModel()
+]).then(() => {
   const initialMessage = {
     type: WebWorkerMessageType.InitialMessage
   };
@@ -27,6 +30,7 @@ addEventListener('message', async ({data}) => {
     type: WebWorkerMessageType.DetectionMessage,
     // data: {image: data, predictions: predictions_potholes?.concat(predictions_traffic)}
     data: {image: data, predictions: predictions_potholes}
+
   };
   postMessage(detectionMessage);
 });

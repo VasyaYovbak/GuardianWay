@@ -1,5 +1,6 @@
 export enum NotificationTypes {
-  Pothole
+  Pothole,
+  BatchSave
 }
 
 export interface NotificationModel {

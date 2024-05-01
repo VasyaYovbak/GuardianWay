@@ -24,6 +24,7 @@
       height: 25vh;
       grid-template-columns: 1fr 1fr;
       grid-column-gap: 20px;
+      margin-bottom: 24px;
 
       .statistic-element-card {
         background-color: white;
@@ -62,6 +63,10 @@
       }
     }
   }
+}
 
+.map-icon{
+  width: 16px;
+  height: 16px;
 }
 
