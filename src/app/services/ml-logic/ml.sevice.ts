@@ -78,7 +78,7 @@ export abstract class DetectionModelAbstractService {
     }
   }
 
-  private async convertVideoFramesToTensor(videoFrame: ImageBitmap) {
+  async convertVideoFramesToTensor(videoFrame: ImageBitmap) {
     const originalImageTensor = tf.browser.fromPixels(videoFrame);
     const resizedImageTensor = originalImageTensor.resizeBilinear([this.modelImageSize, this.modelImageSize]);
     const scalar = tf.scalar(255);

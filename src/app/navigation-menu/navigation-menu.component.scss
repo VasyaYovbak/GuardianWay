@@ -1,5 +1,10 @@
 @use 'variables' as vars;
 
+:host {
+  ::ng-deep.mat-pseudo-checkbox{
+    display: none !important;
+  }
+}
 
 .menu-container {
   height: 70px;
