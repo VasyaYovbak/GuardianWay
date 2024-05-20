@@ -7,12 +7,13 @@ import {InitialPageComponent} from "./initial-page/initial-page.component";
 import {slideInAnimation} from "./animations";
 import {NavigationMenuComponent} from "./navigation-menu";
 import {MAT_SNACK_BAR_DEFAULT_OPTIONS} from "@angular/material/snack-bar";
+import {GoogleMapsModule} from "@angular/google-maps";
 
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, TopBarComponent, InitialPageComponent, NavigationMenuComponent,],
+  imports: [CommonModule, RouterOutlet, TopBarComponent, InitialPageComponent, NavigationMenuComponent, GoogleMapsModule],
   providers: [{provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: {duration: 2500}}],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],

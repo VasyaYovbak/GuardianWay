@@ -24,8 +24,9 @@ export abstract class DetectionModelAbstractService {
     }
 
     const tensor = await this.convertVideoFramesToTensor(videoFrame);
+    const start_time = Date.now();
     const prediction = this.model.predict(tensor);
-
+    console.log(Date.now() - start_time);
     tf.dispose(tensor);
 
     if (!(prediction instanceof tf.Tensor)) {

@@ -12,6 +12,8 @@ export class TrafficLightDetectionModelService extends DetectionModelAbstractSer
 
   async loadModel(): Promise<void> {
     try {
+      await tf.ready();
+      await tf.setBackend('webgpu');
       this.model = await tf.loadGraphModel('assets/models/traffic-small-640-tfjs-uint8/model.json');
       console.log('Traffic light detection model successfully loaded', this.model)
     } catch (e) {

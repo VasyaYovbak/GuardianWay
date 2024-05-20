@@ -1,13 +1,24 @@
 import {inject, Injectable} from "@angular/core";
 import {GeolocationService} from "./geolocation.service";
-import {DetectedObjectInformation} from "../models";
+import {DetectedObjectInformation, DetectionUnitInfo} from "../models";
 import {Subject} from "rxjs";
 import {NotificationModel, NotificationTypes} from "../detection-page/notifications-list";
+import {DetectionStorageService} from "./detection-storage.service";
 
 interface FullDetectedObjectInformation {
   detections: DetectedObjectInformation[]
-  coords: GeolocationCoordinates | null,
-  timestamp: EpochTimeStamp | null;
+  coords: GeolocationCoordinates,
+  timestamp: EpochTimeStamp;
+}
+
+
+export enum DetectionTypes {
+  Pothole = 'pothole',
+  Traffic = 'traffic'
+}
+
+type DetectionStorage = {
+  [key in DetectionTypes]?: FullDetectedObjectInformation[]
 }
 
 @Injectable({
@@ -15,80 +26,73 @@ interface FullDetectedObjectInformation {
 })
 export class HandleDetectionsService {
   private _GeolocationService = inject(GeolocationService)
+  private _DetectionStorageService = inject(DetectionStorageService)
 
-  notificationsSubject: Subject<NotificationModel> = new Subject()
+  notificationsSubject: Subject<NotificationModel> = new Subject();
 
-  private _detectionStorage: Map<string, FullDetectedObjectInformation[]> = new Map()
-  private _frameRateTarget: Map<string, number> = new Map()
-
-  createStorageForClass(classNameOrId: string) {
-    this._detectionStorage = this._detectionStorage.set(classNameOrId, [])
+  private _detectionStorage: DetectionStorage = {
+    [DetectionTypes.Pothole]: []
   }
 
-  setFrameRateTarget(classNameOrId: string, frameRateTarget: number) {
-    this._frameRateTarget.set(classNameOrId, frameRateTarget);
-  }
+  async addDetectionsToStorage(classNameOrId: "pothole", detections: DetectedObjectInformation[]) {
+    const storageRef = this._detectionStorage[classNameOrId]!;
 
-  async addDetectionsToStorage(classNameOrId: string, detections: DetectedObjectInformation[]) {
-    if (!this._detectionStorage.get(classNameOrId)) {
-      this.createStorageForClass(classNameOrId);
-      this.setFrameRateTarget(classNameOrId, 8);
-    }
+    const geoPosition = await this._GeolocationService.getCurrentLocation()
 
-    const isFirstOrLastFrame = this._detectionStorage.get(classNameOrId)!.length === 0 ||
-      this._detectionStorage.get(classNameOrId)!.length === this._frameRateTarget.get(classNameOrId)! - 1;
-
-
-    const geoPosition = isFirstOrLastFrame ?
-      await this._GeolocationService.getCurrentLocation() : {
-        coords: null,
-        timestamp: null
-      }
-
-    this._detectionStorage.get(classNameOrId)!.push({
+    storageRef.push({
       detections: detections,
-      timestamp: geoPosition.timestamp,
+      timestamp: Date.now(),
       coords: geoPosition.coords
     })
 
-    if (this._detectionStorage.get(classNameOrId)?.length === this._frameRateTarget.get(classNameOrId)) {
-      this.handleDetectionUnit(classNameOrId)
+    const timeDifference = storageRef[storageRef.length - 1].timestamp - storageRef[0].timestamp;
+
+    if (timeDifference > 1000) {
+      this.handleDetectionUnit(classNameOrId, storageRef)
     }
   }
 
-  private handleDetectionUnit(classNameOrId: string) {
-    const detections = this._detectionStorage.get(classNameOrId)!
-    this._detectionStorage.set(classNameOrId, []);
+  private handleDetectionUnit(classNameOrId: "pothole", storageRef: FullDetectedObjectInformation[]) {
+    if (!storageRef.length) {
+      return
+    }
 
     if (classNameOrId == 'pothole') {
-      const potholeCounts = detections.reduce((accumulator, currentValue) => {
+      const potholeCounts = storageRef.reduce((accumulator, currentValue) => {
         return accumulator + currentValue.detections.length
       }, 0);
+      const potholeDensity = potholeCounts / storageRef.length;
 
-      if (potholeCounts > 0) {
+      const lastElement = storageRef.slice(-1)[0]
+      const firstElement = storageRef[0]
 
-        const options: any = {
-          weekday: 'short', // abbreviated day name (e.g., "Mon")
-          month: '2-digit', // two-digit month (e.g., "08")
-          day: '2-digit',   // two-digit day of the month (e.g., "12")
-          year: '2-digit',  // two-digit year (e.g., "23")
-          hour: '2-digit',  // two-digit hour (e.g., "22")
-          minute: '2-digit', // two-digit minute (e.g., "22"),
-          second: '2-digit',
-          hour12: false     // use 24-hour time format
-        };
-
-        const formattedDate = new Date(detections[0].timestamp!).toLocaleString('en-US', options);
-
-        this.notificationsSubject.next({
-          type: NotificationTypes.Pothole,
-          date: formattedDate
-        })
+      if (firstElement == null) {
+        return;
       }
 
-      console.log(potholeCounts / this._frameRateTarget.get(classNameOrId)!)
-      console.log(detections[0].coords)
+      const averageCors: GeolocationCoordinates = {
+        ...firstElement.coords,
+        latitude: (lastElement.coords.latitude + firstElement.coords.latitude) / 2,
+        longitude: (lastElement.coords.longitude + firstElement.coords.longitude) / 2,
+      }
+
+      const unit: DetectionUnitInfo = {
+        density: potholeDensity,
+        object_id: 1,
+        location: averageCors,
+        timestamp: new Date(lastElement.timestamp).toISOString().replace('Z', '')
+      }
+
+      this._DetectionStorageService.saveData(unit);
+      if (unit.density > 1) {
+        this.notificationsSubject.next({
+          type: NotificationTypes.Pothole,
+          date: unit.timestamp
+        })
+      }
     }
+
+    this._detectionStorage[classNameOrId] = [];
   }
 
 
