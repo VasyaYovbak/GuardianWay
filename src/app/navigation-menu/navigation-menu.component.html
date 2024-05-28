@@ -1,0 +1,26 @@
+<mat-button-toggle-group class="menu-container">
+  <mat-button-toggle class="menu-item" routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
+    <div class="menu-item-container">
+      <mat-icon>bar_chart</mat-icon>
+      <p class="gw-text">Main</p>
+    </div>
+  </mat-button-toggle>
+  <mat-button-toggle class="menu-item" routerLink="/detection" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
+    <div class="menu-item-container">
+      <mat-icon>camera_alt</mat-icon>
+      <p class="gw-text">Camera</p>
+    </div>
+  </mat-button-toggle>
+  <mat-button-toggle class="menu-item"  routerLink="/info" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
+    <div class="menu-item-container">
+      <mat-icon>info</mat-icon>
+      <p class="gw-text">Information</p>
+    </div>
+  </mat-button-toggle>
+  <mat-button-toggle class="menu-item"  routerLink="/settings" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
+    <div class="menu-item-container">
+      <mat-icon>settings</mat-icon>
+      <p class="gw-text">Settings</p>
+    </div>
+  </mat-button-toggle>
+</mat-button-toggle-group>

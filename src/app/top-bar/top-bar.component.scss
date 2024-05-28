@@ -1,0 +1,13 @@
+@use 'variables' as vars;
+
+.top-bar-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 16px 20px 4px;
+  height: 80px;
+  align-items: center;
+}
+
+.notification-icon{
+  color: vars.$gw-light-blue
+}

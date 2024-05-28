@@ -1,0 +1,48 @@
+<div class="list-header">
+  <span>Notifications</span>
+  <span class="gw-light-text">Read all</span>
+</div>
+<div class="notifications-list">
+  <div *ngFor="let notification of notificationList">
+    @if (notification.type === NotificationTypes.Pothole) {
+      <ng-container *ngTemplateOutlet="potholeDetectedNotification; context:{date:notification.date}">
+      </ng-container>
+    } @else if (notification.type === NotificationTypes.BatchSave) {
+      <ng-container *ngTemplateOutlet="batchNotification; context:{date:notification.date}">
+      </ng-container>
+    }
+
+  </div>
+</div>
+
+<ng-template #batchNotification let-date='date'>
+  <div class="notification-card">
+    <div class="notification-card-header">
+      <mat-icon class="notification-card-header-icon">error_outline</mat-icon>
+      <span>Batch Successfully Saved!</span>
+      <span class="gw-light-text notification-card-header-date">{{ date }}</span>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #potholeDetectedNotification let-date='date'>
+  <div class="notification-card">
+    <div class="notification-card-header">
+      <mat-icon class="notification-card-header-icon">error_outline</mat-icon>
+      <span>New pothole detected</span>
+      <span class="gw-light-text notification-card-header-date">{{ date }}</span>
+    </div>
+    <p class="notification-card-text">Please, be more accurate and lower your speed to 40 km/hour.</p>
+  </div>
+</ng-template>
+
+<ng-template #trafficlightDetectedNotification>
+  <div class="notification-card">
+    <div class="notification-card-header">
+      <mat-icon class="notification-card-header-icon">traffic</mat-icon>
+      <span>New traffic-light detected</span>
+      <span class="gw-light-text notification-card-header-date">Mon, 08/12/23 22:22</span>
+    </div>
+    <p class="notification-card-text">Please, be more accurate and lower your speed to 40 km/hour.</p>
+  </div>
+</ng-template>

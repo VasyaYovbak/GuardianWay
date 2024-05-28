@@ -1,0 +1,9 @@
+<video #player class="player" title="Press to Start"
+       [autoplay]="true"
+       [muted]="true"
+       [controls]="true"
+       [srcObject]="videoStream"
+       controlslist="noremoteplayback nodownload notimeline notimer noplaybackrate nosound"
+       (play)="play.emit()"
+       (pause)="pause.emit()">
+</video>

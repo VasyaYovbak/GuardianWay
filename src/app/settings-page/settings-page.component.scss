@@ -1,0 +1,131 @@
+@use 'variables' as vars ;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+
+  padding: 0 24px;
+  gap: 20px;
+}
+
+.profile-container {
+  display: flex;
+  flex-direction: column;
+
+  .profile-info {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    .profile-image mat-icon {
+      width: 64px;
+      height: 64px;
+      font-size: 64px;
+      color: #d3d3d3;
+    }
+
+    .profile-text-info {
+      display: flex;
+      flex-direction: column;
+      margin-left: 4px;
+
+      .name {
+        font-family: Roboto, sans-serif;
+        font-size: 20px;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 24px;
+        letter-spacing: 0.15px;
+      }
+
+      .info {
+        font-size: 16px;
+      }
+
+    }
+
+    .edit-container {
+      display: flex;
+      flex: 1;
+      justify-content: flex-end;
+    }
+
+  }
+}
+
+.settings-container {
+  display: flex;
+  flex-direction: column;
+
+  .settings-button {
+    ::ng-deep {
+      .mdc-button__label {
+        width: 100%;
+      }
+    }
+
+    width: 100%;
+    justify-content: flex-start;
+    padding: 6px 0;
+    height: 52px;
+
+    .settings-button-body {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      .icon-circle {
+        width: 40px;
+        height: 40px;
+        background-color: #f3f3f3;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .chevron-icon {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        justify-content: flex-end;
+      }
+    }
+  }
+}
+
+.footer-information {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  .left-info {
+    width: 50%;
+    margin-left: 6px;
+
+    .text {
+      font-family: Roboto, sans-serif;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 300;
+      line-height: normal;
+    }
+  }
+
+  .right-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 40px;
+    gap: 5px;
+
+    img{
+      width: 110px;
+    }
+  }
+}

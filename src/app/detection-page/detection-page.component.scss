@@ -1,0 +1,27 @@
+@use "variables" as vars;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0 8px;
+}
+
+.player {
+  width: 100%;
+}
+
+.notification-list {
+  padding-left: 20px;
+  padding-top: 40px;
+  height: calc(100vh - 80px - 70px - (100vw - 16px) * (9 / 16) - 70px);
+}
+
+.camera-button {
+  background-color: vars.$gw-light-blue;
+  color: vars.$gw-white-text;
+  position: absolute;
+  top: calc(82px);
+  left: calc(100vw - 50px - 8px);
+  z-index: 100;
+}
