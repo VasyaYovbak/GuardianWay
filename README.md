@@ -1,27 +1,70 @@
 # GuardianWay
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.0.0.
+GuardianWay — це Angular додаток для детекції та збереження інформації про дорожні вибоїни та світлофори.
 
-## Development server
+## Зміст
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- [Про проект](#про-проект)
+- [Особливості](#особливості)
+- [Технології](#технології)
+- [Встановлення](#встановлення)
+- [Запуск](#запуск)
+- [Структура проекту](#структура-проекту)
+- [Автори](#автори)
+- [Ліцензія](#ліцензія)
 
-## Code scaffolding
+## Про проект
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+GuardianWay допомагає водіям уникати небезпечних дорожніх умов, таких як вибоїни, та надає інформацію про місцезнаходження світлофорів. Додаток використовує технології машинного навчання для автоматичного виявлення вибоїн на дорозі та зберігає цю інформацію в базі даних.
 
-## Build
+## Особливості
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+- Автоматична детекція дорожніх вибоїн за допомогою машинного навчання
+- Відображення розташування світлофорів
+- Інтерактивна мапа для відображення знайдених вибоїн та світлофорів
+- Можливість додавання користувачами нових даних про вибоїни та світлофори
 
-## Running unit tests
+## Технології
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+- [Angular](https://angular.io/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Angular Material](https://material.angular.io/)
+- [Google Maps API](https://developers.google.com/maps)
+- [Firebase](https://firebase.google.com/)
 
-## Running end-to-end tests
+## Встановлення
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+Для встановлення проекту виконайте наступні кроки:
 
-## Further help
+1. Клонуйте репозиторій:
+    ```bash
+    git clone https://github.com/yourusername/GuardianWay.git
+    ```
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+2. Перейдіть в директорію проекту:
+    ```bash
+    cd GuardianWay
+    ```
+
+3. Встановіть залежності:
+    ```bash
+    npm install
+    ```
+
+## Запуск
+
+Для запуску проекту виконайте команду:
+```bash
+ng serve
+```
+
+Додаток буде доступний за адресою http://localhost:4200/.
+
+## Структура проекту
+
+- src/app - директорія з основними файлами додатку
+- src/assets - статичні ресурси
+
+## Автори
+
+Йовбак Василь
